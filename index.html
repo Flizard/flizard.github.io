@@ -144,6 +144,7 @@
                 reapplyHotspotTimer(){
                     let dur = (this.loadForward ? (this.totalFrames - this.currentFrame - 1) * (this.loadDuration / (this.totalFrames * this.animTimes)) : (this.currentFrame + 1) * (this.loadDuration / (this.totalFrames * this.animTimes)));
                     let target = this.loadForward ? 1 : 0;
+                    console.log("reapplying hotspot timer");
                     this.animateHotspotTimer= anime({
                         targets: this.Tsca,
                         sca: [this.tempTsca, target],
@@ -309,7 +310,7 @@
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V13");
+                    console.log("V14");
                     inVR = true;
                     //rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
