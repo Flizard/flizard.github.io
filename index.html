@@ -305,21 +305,20 @@
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
                 rig = document.getElementById("rig");
-                console.log("V10");
                 document.getElementById("cursor").addEventListener("mouseenter", function() {
                     console.log("entered something");
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V10");
+                    console.log("V11");
                     inVR = true;
-                    rig.setAttribute("position", "0 -1.6 0");
+                    //rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
                 });
                 document.querySelector('a-scene').addEventListener('exit-vr', function () {
                     console.log("EXITED VR");
                     inVR = false;
-                    rig.setAttribute("position", "0 0 0");
+                    //rig.setAttribute("position", "0 0 0");
                     //[...circs].map(a => a.setAttribute("position", "0 0 0"));
                 });
                 for(let i = 0; i < circs.length; i++){
