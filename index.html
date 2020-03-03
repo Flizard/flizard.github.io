@@ -302,11 +302,9 @@
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
-                    console.log(maincam.getAttribute("pos"));
+                    console.log("entered VR");
+                    console.log(maincam.getAttribute("position"));
                 });
-                setTimeout(function() {
-                    console.log("changedsky");
-                }, 5000);
                 for(let i = 0; i < circs.length; i++){
                     let circ = circs[i];
                     if(i == 0){
