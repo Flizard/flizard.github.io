@@ -318,7 +318,7 @@
                     console.log("EXITED VR");
                     inVR = false;
                     //rig.setAttribute("position", "0 0 0");
-                    //[...circs].map(a => a.setAttribute("position", "0 0 0"));
+                    [...circs].map(a => a.setAttribute("position", "0 0 0"));
                 });
                 for(let i = 0; i < circs.length; i++){
                     let circ = circs[i];
