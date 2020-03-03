@@ -21,6 +21,7 @@
             var changingScene = false;
             var scene1, scene2;
             var currentScene;
+            var maincam;
 
             var animateHotspotTimer, growHotspot, shrinkHotspot;
 
@@ -299,6 +300,10 @@
                 noButtons = document.getElementsByClassName("no-btn");
                 fade = document.getElementById("fade-sphere");
                 sky = document.getElementById("sky");
+                maincam = document.getElementById("cam");
+                document.querySelector('a-scene').addEventListener('enter-vr', function () {
+                    console.log(maincam.getAttribute("pos"));
+                });
                 setTimeout(function() {
                     console.log("changedsky");
                 }, 5000);
@@ -910,8 +915,8 @@
                 </a-curvedimage>
             </a-entity>
 
-            <a-entity id="cameraRig" position="0 0 0">
-                <a-entity camera look-controls rotation-reader position="0 0 0">
+            <a-entity id="rig" position="0 0 0">
+                <a-entity id="cam" camera look-controls rotation-reader position="0 0 0">
                     <a-cursor color="white" raycaster="objects: .interactive"/>
                 </a-entity>
             </a-entity>
