@@ -305,12 +305,13 @@
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
                 rig = document.getElementById("rig");
+                console.log("V9");
                 document.getElementById("cursor").addEventListener("mouseenter", function() {
                     console.log("entered something");
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V8");
+                    console.log("V9");
                     inVR = true;
                     rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
@@ -412,6 +413,7 @@
                             currentHotspot.animateHotspotTimer.pause();
                         }
                         currentHotspot.reapplyHotspotTimer();
+                        console.log("play timer anim");
                         currentHotspot.animateHotspotTimer.play();
                     }
                 }
