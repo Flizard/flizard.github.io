@@ -303,11 +303,9 @@
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
                 rig = document.getElementById("rig");
-                console.log(maincam);
-                console.log(maincam.getAttribute("position"));
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
-                    console.log("entered VR");
-                    console.log(rig.getAttribute("position"));
+                    console.log("ENTERED VR");
+                    [...circs].map(a => a.setAttribute("position", "0 1.6 0"));
                 });
                 for(let i = 0; i < circs.length; i++){
                     let circ = circs[i];
