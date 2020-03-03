@@ -301,6 +301,8 @@
                 fade = document.getElementById("fade-sphere");
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
+                console.log(maincam);
+                console.log(maincam.getAttribute("position"));
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("entered VR");
                     console.log(maincam.getAttribute("position"));
