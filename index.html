@@ -141,7 +141,7 @@
                     });
                 }
 
-                reapplyHotspotTimer(){
+                /*reapplyHotspotTimer(){
                     let dur = (this.loadForward ? (this.totalFrames - this.currentFrame - 1) * (this.loadDuration / (this.totalFrames * this.animTimes)) : (this.currentFrame + 1) * (this.loadDuration / (this.totalFrames * this.animTimes)));
                     let target = this.loadForward ? 1 : 0;
                     console.log("reapplying hotspot timer");
@@ -183,7 +183,7 @@
                             }
                         }
                     });
-                }
+                }*/
 
                 reapplyShrink(){
                     this.shrinkHotspot = AFRAME.ANIME({
@@ -310,7 +310,7 @@
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V15");
+                    console.log("V16");
                     inVR = true;
                     //rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
@@ -408,12 +408,12 @@
                         currentHotspotTimerHolder = document.getElementById(this.getAttribute('id').substring(0,2) + "TH");
                         currentHotspot.loadForward = true;
                         if(typeof currentHotspot.animateHotspotTimer !== 'undefined'){
-                            currentHotspot.animateHotspotTimer.restart();
-                            currentHotspot.animateHotspotTimer.pause();
+                            //currentHotspot.animateHotspotTimer.restart();
+                            //currentHotspot.animateHotspotTimer.pause();
                         }
-                        currentHotspot.reapplyHotspotTimer();
+                        //currentHotspot.reapplyHotspotTimer();
                         console.log("play timer anim");
-                        currentHotspot.animateHotspotTimer.play();
+                        //currentHotspot.animateHotspotTimer.play();
                     }
                 }
 
@@ -432,11 +432,11 @@
                                 currentHotspot.loadForward = false;
                                 clearInterval(currentHotspot.loadInterval);
                                 if(typeof currentHotspot.animateHotspotTimer !== 'undefined'){
-                                    currentHotspot.animateHotspotTimer.restart();
-                                    currentHotspot.animateHotspotTimer.pause();
+                                    //currentHotspot.animateHotspotTimer.restart();
+                                    //currentHotspot.animateHotspotTimer.pause();
                                 }
-                                currentHotspot.reapplyHotspotTimer();
-                                currentHotspot.animateHotspotTimer.play();
+                                //currentHotspot.reapplyHotspotTimer();
+                                //currentHotspot.animateHotspotTimer.play();
                             }
                         }
                     },5);
@@ -515,6 +515,61 @@
                         maincam.setAttribute("position", {x: pos.x, y: (pos.y - 1.6), z: pos.z});
                         console.log(maincam.getAttribute("position"));*/
                     }
+                }
+            });
+
+            AFRAME.registerComponent('timer', {
+                init: function() {
+                    var curr = hotSpots[Number(currentHotspot.id.substring(0,2))-1];
+                    let dur = (curr.loadForward ? (curr.totalFrames - curr.currentFrame - 1) * (curr.loadDuration / (curr.totalFrames * curr.animTimes)) : (curr.currentFrame + 1) * (curr.loadDuration / (curr.totalFrames * curr.animTimes)));
+                    let target = curr.loadForward ? 1 : 0;
+                    this.time = 0;
+                    console.log("Timer through component");
+                    console.log(curr);
+                    this.animateHotspotTimer = AFRAME.ANIME({
+                        targets: curr.Tsca,
+                        sca: [curr.tempTsca, target],
+                        duration: dur,
+                        autoplay: false,
+                        easing: 'linear',
+                        begin: (anim) => {
+                            console.log("timer anim started through component");
+                            curr.loader.setAttribute("visible", "true");
+                            curr.loader.setAttribute("src",`#loadS${curr.currentFrame > 9 ? curr.currentFrame : '0' + curr.currentFrame}`);
+                            if(curr.el.classList.contains("canSetInterval")){
+                                curr.el.classList.remove("canSetInterval");
+                                curr.loadInterval = setInterval((function(self){
+                                    return function() {
+                                        if(self.loadForward){
+                                            self.currentFrame = (self.currentFrame + 1) % (self.totalFrames);
+                                        } else {
+                                            self.currentFrame = (self.currentFrame - 1) % (self.totalFrames);
+                                        }
+                                        self.loader.setAttribute("src",`#loadS${self.currentFrame > 9 ? self.currentFrame : self.currentFrame >= 0 ? '0' + self.currentFrame : self.totalFrames + self.currentFrame > 9 ? (self.totalFrames + self.currentFrame) : '0' + (self.totalFrames + self.currentFrame)}`);
+                                    }
+                                })(curr),curr.loadDuration / (curr.totalFrames * curr.animTimes));
+                            }
+                        },
+                        update: () => {
+                            curr.loader.setAttribute("opacity", curr.Tsca.sca);
+                            curr.tempTsca = curr.Tsca.sca;
+                        },
+                        complete: () => {
+                            curr.loader.setAttribute("visible", "false");
+                            clearInterval(curr.loadInterval);
+                            curr.el.classList.add("canSetInterval");
+                            curr.currentFrame = 0;
+                            if(curr.loadForward){
+                                curr.growHotspot.restart();
+                            }
+                            this.time = 0;
+                            this.animateHotspotTimer.reset();
+                        }
+                    });
+                },
+                tick: function(t, dt) {
+                    this.time += dt;
+                    this.animateHotspotTimer.tick(this.time);
                 }
             });
         </script>
@@ -765,7 +820,8 @@
                     theta-start="155"
                     scale="0.1 0.1 1"
                     rotation="0 -10 0"
-                    position="0 0 0">
+                    position="0 0 0"
+                    timer>
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
