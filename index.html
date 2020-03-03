@@ -305,10 +305,6 @@
                 rig = document.getElementById("rig");
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    [...circs].map(a => a.setAttribute("position", `0 ${maincam.getAttribute("position").x} 0`));
-                    setInterval(function(){
-                        console.log(maincam.getAttribute("position"));
-                    }, 500);
                 });
                 document.querySelector('a-scene').addEventListener('exit-vr', function () {
                     console.log("EXITED VR");
@@ -495,6 +491,12 @@
                 }
                 movedSpots = [];
             }
+
+            AFRAME.registerComponent('position-reader', {
+                tick: function() {
+                    [...circs].map(a => a.setAttribute("position", maincam.getAttribute("position")));
+                }
+            })
         </script>
     </head>
     <body>
@@ -923,7 +925,7 @@
             </a-entity>
 
             <a-entity id="rig" position="0 0 0">
-                <a-entity id="cam" camera look-controls rotation-reader position="0 0 0">
+                <a-entity id="cam" camera look-controls rotation-reader position="0 0 0" position-reader>
                     <a-cursor color="white" raycaster="objects: .interactive"/>
                 </a-entity>
             </a-entity>
