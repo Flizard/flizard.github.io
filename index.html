@@ -23,6 +23,7 @@
             var currentScene;
             var maincam;
             var rig;
+            var inVR = false;
 
             var animateHotspotTimer, growHotspot, shrinkHotspot;
 
@@ -305,14 +306,16 @@
                 rig = document.getElementById("rig");
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V3");
-                    rig.setAttribute("position", "0 1.6 0");
-                    [...circs].map(a => a.setAttribute("position", "0 1.6 0"));
+                    console.log("V4");
+                    inVR = true;
+                    // rig.setAttribute("position", "0 1.6 0");
+                    //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
                 });
                 document.querySelector('a-scene').addEventListener('exit-vr', function () {
                     console.log("EXITED VR");
-                    rig.setAttribute("position", "0 0 0");
-                    [...circs].map(a => a.setAttribute("position", "0 0 0"));
+                    inVR = false;
+                    // rig.setAttribute("position", "0 0 0");
+                    //[...circs].map(a => a.setAttribute("position", "0 0 0"));
                 });
                 for(let i = 0; i < circs.length; i++){
                     let circ = circs[i];
@@ -499,6 +502,10 @@
             AFRAME.registerComponent('position-reader', {
                 tick: function() {
                     // [...circs].map(a => a.setAttribute("position", maincam.getAttribute("position")));
+                    if(inVR){
+                        let pos = maincam.getAttribute("position");
+                        maincam.setAttribute("position", {x: pos.x, y: (pos.y - 1.6), z: pos.z});
+                    }
                 }
             })
         </script>
