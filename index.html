@@ -849,8 +849,10 @@
                 </a-curvedimage>
             </a-entity>
 
-            <a-entity camera look-controls rotation-reader position="0 0 0">
-                <a-cursor color="white" raycaster="objects: .interactive"/>
+            <a-entity id="cameraRig" position="0 0 0">
+                <a-entity camera look-controls rotation-reader position="0 0 0">
+                    <a-cursor color="white" raycaster="objects: .interactive"/>
+                </a-entity>
             </a-entity>
 
             <a-entity
