@@ -305,7 +305,7 @@
                 rig = document.getElementById("rig");
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V1");
+                    console.log("V2");
                 });
                 document.querySelector('a-scene').addEventListener('exit-vr', function () {
                     console.log("EXITED VR");
@@ -933,7 +933,7 @@
 
             <a-entity id="rig" position="0 0 0">
                 <a-entity id="cam" camera look-controls rotation-reader position-reader>
-                    <a-cursor color="white" raycaster="objects: .interactive"/>
+                    <a-cursor color="white" raycaster="objects: .interactive; showLine: true"/>
                 </a-entity>
             </a-entity>
 
