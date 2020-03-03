@@ -2,7 +2,7 @@
     <head>
         <script src="aframe.min.js"></script>
         <!--<script src="node_modules/animejs/lib/anime.min.js"></script>-->
-        <script src="anime.min.js"></script>
+        <!--<script src="anime.min.js"></script>-->
         <script>
             const pixelScale = 1.032 / 1080;
             const lengthScale = 50 / 1080;
@@ -91,7 +91,7 @@
                         });
                     }
 
-                    this.growHotspot = anime({
+                    this.growHotspot = AFRAME.ANIME({
                         targets: this.Hsca,
                         sca: 1,
                         duration: 1000,
@@ -145,7 +145,7 @@
                     let dur = (this.loadForward ? (this.totalFrames - this.currentFrame - 1) * (this.loadDuration / (this.totalFrames * this.animTimes)) : (this.currentFrame + 1) * (this.loadDuration / (this.totalFrames * this.animTimes)));
                     let target = this.loadForward ? 1 : 0;
                     console.log("reapplying hotspot timer");
-                    this.animateHotspotTimer= anime({
+                    this.animateHotspotTimer = AFRAME.ANIME({
                         targets: this.Tsca,
                         sca: [this.tempTsca, target],
                         duration: dur,
@@ -179,14 +179,14 @@
                             this.el.classList.add("canSetInterval");
                             this.currentFrame = 0;
                             if(this.loadForward){
-                                this.growHotspot.play();
+                                this.growHotspot.restart();
                             }
                         }
                     });
                 }
 
                 reapplyShrink(){
-                    this.shrinkHotspot = anime({
+                    this.shrinkHotspot = AFRAME.ANIME({
                         targets: this.Hsca,
                         sca: [this.tempHsca, 0.1],
                         duration: 1000,
@@ -254,7 +254,7 @@
                 reapplyButtonTimer(){
                     let dur = this.loadForward ? ((30 - this.currentFrame - 1) * (this.loadDuration / 30)) : ((this.currentFrame + 1) * (this.loadDuration / 30));
                     let target = this.loadForward ? 1 : 0;
-                    this.animateButtonTimer = anime({
+                    this.animateButtonTimer = AFRAME.ANIME({
                         targets: this.timer,
                         t: [this.tempTimer, target],
                         duration: dur,
@@ -310,7 +310,7 @@
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V14");
+                    console.log("V15");
                     inVR = true;
                     //rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
