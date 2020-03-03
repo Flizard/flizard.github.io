@@ -305,6 +305,7 @@
                 rig = document.getElementById("rig");
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
+                    console.log("V1");
                 });
                 document.querySelector('a-scene').addEventListener('exit-vr', function () {
                     console.log("EXITED VR");
@@ -494,7 +495,7 @@
 
             AFRAME.registerComponent('position-reader', {
                 tick: function() {
-                    [...circs].map(a => a.setAttribute("position", maincam.getAttribute("position")));
+                    // [...circs].map(a => a.setAttribute("position", maincam.getAttribute("position")));
                 }
             })
         </script>
@@ -744,7 +745,8 @@
                     theta-length="50"
                     theta-start="155"
                     scale="0.1 0.1 1"
-                    rotation="0 -10 0">
+                    rotation="0 -10 0"
+                    position="0 0 0">
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -771,7 +773,8 @@
                     theta-length="50"
                     theta-start="155"
                     scale="0.1 0.1 1"
-                    rotation="-13 32.9 0">
+                    rotation="-13 32.9 0"
+                    position="0 0 0">
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -813,7 +816,8 @@
                     theta-length="50"
                     theta-start="155"
                     scale="0.1 0.1 1"
-                    rotation="-35 -116.6 0">
+                    rotation="-35 -116.6 0"
+                    position="0 0 0">
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -835,7 +839,8 @@
                     theta-length="50"
                     theta-start="155"
                     scale="0.1 0.1 1"
-                    rotation="-17 105.2 0">
+                    rotation="-17 105.2 0"
+                    position="0 0 0">
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -862,7 +867,8 @@
                     theta-length="50"
                     theta-start="155"
                     scale="0.1 0.1 1"
-                    rotation="0.99 -6.7 0">
+                    rotation="0.99 -6.7 0"
+                    position="0 0 0">
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -889,7 +895,8 @@
                     theta-length="50"
                     theta-start="155"
                     scale="0.1 0.1 1"
-                    rotation="-10 180 0">
+                    rotation="-10 180 0"
+                    position="0 0 0">
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -925,7 +932,7 @@
             </a-entity>
 
             <a-entity id="rig" position="0 0 0">
-                <a-entity id="cam" camera look-controls rotation-reader position="0 0 0" position-reader>
+                <a-entity id="cam" camera look-controls rotation-reader position-reader>
                     <a-cursor color="white" raycaster="objects: .interactive"/>
                 </a-entity>
             </a-entity>
