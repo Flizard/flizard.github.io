@@ -42,6 +42,7 @@
                     this.Hsca = {
                         'sca': 0
                     };
+                    this.loading = false;
                     this.enteredCheck = true;
                     this.closingCheck = true;
                     this.openingCheck = true;
@@ -141,10 +142,10 @@
                     });
                 }
 
-                /*reapplyHotspotTimer(){
+                reapplyHotspotTimer(){
                     let dur = (this.loadForward ? (this.totalFrames - this.currentFrame - 1) * (this.loadDuration / (this.totalFrames * this.animTimes)) : (this.currentFrame + 1) * (this.loadDuration / (this.totalFrames * this.animTimes)));
                     let target = this.loadForward ? 1 : 0;
-                    console.log("reapplying hotspot timer");
+                    //console.log("reapplying hotspot timer");
                     this.animateHotspotTimer = AFRAME.ANIME({
                         targets: this.Tsca,
                         sca: [this.tempTsca, target],
@@ -152,7 +153,7 @@
                         autoplay: false,
                         easing: 'linear',
                         begin: (anim) => {
-                            console.log("timer anim started");
+                            //console.log("timer anim started");
                             this.loader.setAttribute("visible", "true");
                             this.loader.setAttribute("src",`#loadS${this.currentFrame > 9 ? this.currentFrame : '0' + this.currentFrame}`);
                             if(this.el.classList.contains("canSetInterval")){
@@ -180,10 +181,11 @@
                             this.currentFrame = 0;
                             if(this.loadForward){
                                 this.growHotspot.restart();
+                                this.el.emit('loadFinished');
                             }
                         }
                     });
-                }*/
+                }
 
                 reapplyShrink(){
                     this.shrinkHotspot = AFRAME.ANIME({
@@ -233,6 +235,7 @@
                     })
                 }
             }
+
 
             class uiButton {
                 constructor(el,type,f) {
@@ -294,6 +297,50 @@
                 }
             }
 
+            AFRAME.registerComponent('hotspot',{
+                schema: {
+                    loadEvent: {type: 'string', default: 'entered'},
+                    growEvent: {type: 'string', default: 'loadFinished'},
+                    shrinkEvent: {type: 'string', default: 'left'}
+                },
+                init: function() {
+                    var self = this;
+                    this.loadEventHandlerFn = function () {
+                        console.log("triggered load event");
+                    };
+                    this.growEventHandlerFn = function () {
+                        console.log("triggered grow event");
+                    };
+                    this.shrinkEventHandlerFn = function () {
+                        console.log("triggered shrink event");
+                    };
+                },
+                update: function(oldData) {
+                    var data = this.data;
+                    var el = this.el;
+
+                    if(oldData.loadEvent && data.loadEvent !== oldData.loadEvent) {
+                        el.removeEventListener(oldData.loadEvent, this.loadEventHandlerFn);
+                    }
+                    if(oldData.growEvent && data.growEvent !== oldData.growEvent) {
+                        el.removeEventListener(oldData.growEvent, this.growEventHandlerFn);
+                    }
+                    if(oldData.shrinkEvent && data.shrinkEvent !== oldData.shrinkEvent) {
+                        el.removeEventListener(oldData.shrinkEvent, this.shrinkEventHandlerFn);
+                    }
+
+                    if(data.loadEvent) {
+                        el.addEventListener(data.loadEvent, this.loadEventHandlerFn);
+                    }
+                    if(data.growEvent) {
+                        el.addEventListener(data.growEvent, this.growEventHandlerFn);
+                    }
+                    if(data.shrinkEvent) {
+                        el.addEventListener(data.shrinkEvent, this.shrinkEventHandlerFn);
+                    }
+                }
+            });
+
             document.addEventListener("DOMContentLoaded", function(){
                 scene1 = document.getElementById("scene1");
                 scene2 = document.getElementById("scene2");
@@ -306,7 +353,7 @@
                 maincam = document.getElementById("cam");
                 rig = document.getElementById("rig");
                 document.getElementById("cursor").addEventListener("mouseenter", function() {
-                    console.log("entered something");
+                    //console.log("entered something");
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
@@ -400,20 +447,22 @@
                 }
 
                 function hotSpotEnter() {
-                    console.log("entered hotspot");
+                    //console.log("entered hotspot");
                     currentHotspot = this;
                     currentHotspot = hotSpots[Number(currentHotspot.id.substring(0,2))-1];
-                    console.log(currentHotspot);
+                    //console.log(currentHotspot);
                     if(!currentHotspot.el.classList.contains("entered") && !currentHotspot.el.classList.contains("opening") && !currentHotspot.el.classList.contains("closing") && typeof currentHotspot !== 'undefined'){
                         currentHotspotTimerHolder = document.getElementById(this.getAttribute('id').substring(0,2) + "TH");
                         currentHotspot.loadForward = true;
+                        currentHotspot.loading = true;
+                        currentHotspot.el.emit('entered');
                         if(typeof currentHotspot.animateHotspotTimer !== 'undefined'){
-                            //currentHotspot.animateHotspotTimer.restart();
-                            //currentHotspot.animateHotspotTimer.pause();
+                            currentHotspot.animateHotspotTimer.restart();
+                            currentHotspot.animateHotspotTimer.pause();
                         }
-                        //currentHotspot.reapplyHotspotTimer();
-                        console.log("play timer anim");
-                        //currentHotspot.animateHotspotTimer.play();
+                        currentHotspot.reapplyHotspotTimer();
+                        //console.log("play timer anim");
+                        currentHotspot.animateHotspotTimer.play();
                     }
                 }
 
@@ -421,6 +470,8 @@
                     setTimeout(function(){
                         if(!currentHotspot.el.classList.contains("opening") && !onButton){
                             currentHotspot.el.classList.add("canSetInterval");
+                            currentHotspot.loading = false;
+                            currentHotspot.el.emit('left');
                             if(currentHotspot.el.classList.contains("entered")){
                                 currentHotspot.animateHotspotTimer.restart();
                                 currentHotspot.animateHotspotTimer.pause();
@@ -432,11 +483,11 @@
                                 currentHotspot.loadForward = false;
                                 clearInterval(currentHotspot.loadInterval);
                                 if(typeof currentHotspot.animateHotspotTimer !== 'undefined'){
-                                    //currentHotspot.animateHotspotTimer.restart();
-                                    //currentHotspot.animateHotspotTimer.pause();
+                                    currentHotspot.animateHotspotTimer.restart();
+                                    currentHotspot.animateHotspotTimer.pause();
                                 }
-                                //currentHotspot.reapplyHotspotTimer();
-                                //currentHotspot.animateHotspotTimer.play();
+                                currentHotspot.reapplyHotspotTimer();
+                                currentHotspot.animateHotspotTimer.play();
                             }
                         }
                     },5);
@@ -515,61 +566,6 @@
                         maincam.setAttribute("position", {x: pos.x, y: (pos.y - 1.6), z: pos.z});
                         console.log(maincam.getAttribute("position"));*/
                     }
-                }
-            });
-
-            AFRAME.registerComponent('timer', {
-                init: function() {
-                    var curr = hotSpots[Number(currentHotspot.id.substring(0,2))-1];
-                    let dur = (curr.loadForward ? (curr.totalFrames - curr.currentFrame - 1) * (curr.loadDuration / (curr.totalFrames * curr.animTimes)) : (curr.currentFrame + 1) * (curr.loadDuration / (curr.totalFrames * curr.animTimes)));
-                    let target = curr.loadForward ? 1 : 0;
-                    this.time = 0;
-                    console.log("Timer through component");
-                    console.log(curr);
-                    this.animateHotspotTimer = AFRAME.ANIME({
-                        targets: curr.Tsca,
-                        sca: [curr.tempTsca, target],
-                        duration: dur,
-                        autoplay: false,
-                        easing: 'linear',
-                        begin: (anim) => {
-                            console.log("timer anim started through component");
-                            curr.loader.setAttribute("visible", "true");
-                            curr.loader.setAttribute("src",`#loadS${curr.currentFrame > 9 ? curr.currentFrame : '0' + curr.currentFrame}`);
-                            if(curr.el.classList.contains("canSetInterval")){
-                                curr.el.classList.remove("canSetInterval");
-                                curr.loadInterval = setInterval((function(self){
-                                    return function() {
-                                        if(self.loadForward){
-                                            self.currentFrame = (self.currentFrame + 1) % (self.totalFrames);
-                                        } else {
-                                            self.currentFrame = (self.currentFrame - 1) % (self.totalFrames);
-                                        }
-                                        self.loader.setAttribute("src",`#loadS${self.currentFrame > 9 ? self.currentFrame : self.currentFrame >= 0 ? '0' + self.currentFrame : self.totalFrames + self.currentFrame > 9 ? (self.totalFrames + self.currentFrame) : '0' + (self.totalFrames + self.currentFrame)}`);
-                                    }
-                                })(curr),curr.loadDuration / (curr.totalFrames * curr.animTimes));
-                            }
-                        },
-                        update: () => {
-                            curr.loader.setAttribute("opacity", curr.Tsca.sca);
-                            curr.tempTsca = curr.Tsca.sca;
-                        },
-                        complete: () => {
-                            curr.loader.setAttribute("visible", "false");
-                            clearInterval(curr.loadInterval);
-                            curr.el.classList.add("canSetInterval");
-                            curr.currentFrame = 0;
-                            if(curr.loadForward){
-                                curr.growHotspot.restart();
-                            }
-                            this.time = 0;
-                            this.animateHotspotTimer.reset();
-                        }
-                    });
-                },
-                tick: function(t, dt) {
-                    this.time += dt;
-                    this.animateHotspotTimer.tick(this.time);
                 }
             });
         </script>
@@ -821,7 +817,7 @@
                     scale="0.1 0.1 1"
                     rotation="0 -10 0"
                     position="0 0 0"
-                    timer>
+                    hotspot>
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -849,7 +845,8 @@
                     theta-start="155"
                     scale="0.1 0.1 1"
                     rotation="-13 32.9 0"
-                    position="0 0 0">
+                    position="0 0 0"
+                    hotspot>
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
