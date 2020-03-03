@@ -305,13 +305,13 @@
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
                 rig = document.getElementById("rig");
-                console.log("V9");
+                console.log("V10");
                 document.getElementById("cursor").addEventListener("mouseenter", function() {
                     console.log("entered something");
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V9");
+                    console.log("V10");
                     inVR = true;
                     rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
@@ -509,15 +509,15 @@
 
             AFRAME.registerComponent('position-reader', {
                 tick: function() {
-                    // [...circs].map(a => a.setAttribute("position", maincam.getAttribute("position")));
-                    /*if(inVR){
-                        let pos = maincam.getAttribute("position");
+                    if(inVR){
+                        [...circs].map(a => a.setAttribute("position", maincam.getAttribute("position")));
+                        /*let pos = maincam.getAttribute("position");
                         console.log(pos);
                         maincam.setAttribute("position", {x: pos.x, y: (pos.y - 1.6), z: pos.z});
-                        console.log(maincam.getAttribute("position"));
-                    }*/
+                        console.log(maincam.getAttribute("position"));*/
+                    }
                 }
-            })
+            });
         </script>
     </head>
     <body>
