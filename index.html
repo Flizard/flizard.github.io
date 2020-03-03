@@ -309,7 +309,7 @@
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V6");
+                    console.log("V7");
                     inVR = true;
                     rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
@@ -399,6 +399,7 @@
                 }
 
                 function hotSpotEnter() {
+                    console.log("entered hotspot");
                     currentHotspot = this;
                     currentHotspot = hotSpots[Number(currentHotspot.id.substring(0,2))-1];
                     if(!currentHotspot.el.classList.contains("entered") && !currentHotspot.el.classList.contains("opening") && !currentHotspot.el.classList.contains("closing") && typeof currentHotspot !== 'undefined'){
