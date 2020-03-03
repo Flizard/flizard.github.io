@@ -305,7 +305,14 @@
                 rig = document.getElementById("rig");
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    [...circs].map(a => a.setAttribute("position", "0 1.6 0"));
+                    [...circs].map(a => a.setAttribute("position", `0 ${maincam.getAttribute("position").x} 0`));
+                    setInterval(function(){
+                        console.log(maincam.getAttribute("position"));
+                    }, 500);
+                });
+                document.querySelector('a-scene').addEventListener('exit-vr', function () {
+                    console.log("EXITED VR");
+                    [...circs].map(a => a.setAttribute("position", "0 0 0"));
                 });
                 for(let i = 0; i < circs.length; i++){
                     let circ = circs[i];
