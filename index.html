@@ -64,11 +64,29 @@
                                         [...scene2.children].map(a => {a.classList.add("interactive")});
                                         fade.components.animation__fadein.animation.restart();
                                         sky.setAttribute("src", "#sky2");
+                                        changingScene = false;
                                     }
                                 })(this),2000);
                             }
                         });
-                        this.nobtn = new uiButton(this.nobtn, "no", () => {});
+                        this.nobtn = new uiButton(this.nobtn, "no", () => {
+                            if(changingScene == false){
+                                changingScene = true;
+                                fade.components.animation__fadeout.animation.restart();
+                                [...scene2.children].map(a => {a.classList.remove("interactive")});
+                                setTimeout((function(self){
+                                    return function() {
+                                        currentScene = scene2;
+                                        scene2.setAttribute("visible", "false");
+                                        scene1.setAttribute("visible", "true");
+                                        [...scene1.children].map(a => {a.classList.add("interactive")});
+                                        fade.components.animation__fadein.animation.restart();
+                                        sky.setAttribute("src", "#sky1");
+                                        changingScene = false;
+                                    }
+                                })(this),2000);
+                            }
+                        });
                     }
 
                     this.growHotspot = anime({
@@ -847,6 +865,48 @@
                                 rotation="0 0 0" scale="-1 1 1"
                                 visible="false">
                     </a-entity>
+                </a-curvedimage>
+
+                <a-curvedimage 
+                    class="circ 6"
+                    src="#hotspot"
+                    height="1.0324"
+                    radius="1.183"
+                    theta-length="50"
+                    theta-start="155"
+                    scale="0.1 0.1 1"
+                    rotation="-10 180 0">
+                    <a-curvedimage
+                        src="#loadS0"
+                        opacity="0"
+                        height="1.0472"
+                        radius="1.2"
+                        theta-length="50"
+                        theta-start="155"
+                        scale="1.1 1.1 1"
+                        rotation="0 0 0"
+                        visible="false">
+                    </a-curvedimage>
+                    <a-curvedimage
+                        class="yes-btn"
+                        src="#yesbtnLoad0"
+                        height="0.1292"
+                        radius="1.18"
+                        theta-length="20"
+                        theta-start="181"
+                        position="0 -0.12 0"
+                        visible="false">
+                    </a-curvedimage>
+                    <a-curvedimage
+                        class="no-btn"
+                        src="#nobtnLoad0"
+                        height="0.1292"
+                        radius="1.18"
+                        theta-length="20"
+                        theta-start="159"
+                        position="0 -0.12 0"
+                        visible="false">
+                    </a-curvedimage>
                 </a-curvedimage>
             </a-entity>
 
