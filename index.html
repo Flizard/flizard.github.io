@@ -22,6 +22,7 @@
             var scene1, scene2;
             var currentScene;
             var maincam;
+            var rig;
 
             var animateHotspotTimer, growHotspot, shrinkHotspot;
 
@@ -301,15 +302,12 @@
                 fade = document.getElementById("fade-sphere");
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
+                rig = document.getElementById("rig");
                 console.log(maincam);
                 console.log(maincam.getAttribute("position"));
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("entered VR");
-                    setTimeout(function(){
-                        console.log(maincam.getAttribute("position"));
-                        maincam.setAttribute("position", {x: 0, y: 0, z: 0});
-                        maincam.setAttribute("position", "0 0 0");
-                    },5000);
+                    console.log(rig.getAttribute("position"));
                 });
                 for(let i = 0; i < circs.length; i++){
                     let circ = circs[i];
