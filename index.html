@@ -945,7 +945,11 @@
 
             <a-entity id="rig" position="0 0 0">
                 <a-entity id="cam" camera look-controls position-reader>
-                    <a-cursor color="white" raycaster="objects: .interactive; showLine: true"/>
+                    <a-cursor
+                        color="white"
+                        raycaster="objects: .interactive; showLine: true"
+                        position="0 0 -0.5"
+                        scale="0.5 0.5 0.5"/>
                 </a-entity>
             </a-entity>
 
