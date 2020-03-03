@@ -152,6 +152,7 @@
                         autoplay: false,
                         easing: 'linear',
                         begin: (anim) => {
+                            console.log("timer anim started");
                             this.loader.setAttribute("visible", "true");
                             this.loader.setAttribute("src",`#loadS${this.currentFrame > 9 ? this.currentFrame : '0' + this.currentFrame}`);
                             if(this.el.classList.contains("canSetInterval")){
@@ -309,7 +310,7 @@
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V7");
+                    console.log("V8");
                     inVR = true;
                     rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
@@ -402,6 +403,7 @@
                     console.log("entered hotspot");
                     currentHotspot = this;
                     currentHotspot = hotSpots[Number(currentHotspot.id.substring(0,2))-1];
+                    console.log(currentHotspot);
                     if(!currentHotspot.el.classList.contains("entered") && !currentHotspot.el.classList.contains("opening") && !currentHotspot.el.classList.contains("closing") && typeof currentHotspot !== 'undefined'){
                         currentHotspotTimerHolder = document.getElementById(this.getAttribute('id').substring(0,2) + "TH");
                         currentHotspot.loadForward = true;
