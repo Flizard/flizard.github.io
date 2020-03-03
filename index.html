@@ -304,9 +304,12 @@
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
                 rig = document.getElementById("rig");
+                document.getElementById("cursor").addEventListener("mouseenter", function() {
+                    console.log("entered something");
+                });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V5");
+                    console.log("V6");
                     inVR = true;
                     rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
@@ -946,8 +949,10 @@
             <a-entity id="rig" position="0 0 0">
                 <a-entity id="cam" camera look-controls position-reader>
                     <a-cursor
+                        id="cursor"
                         color="white"
-                        raycaster="objects: .interactive; showLine: true"
+                        raycaster="objects: .interactive; showLine: true;"
+                        rayOrigin="mouse"
                         position="0 0 -0.5"
                         scale="0.5 0.5 0.5"/>
                 </a-entity>
