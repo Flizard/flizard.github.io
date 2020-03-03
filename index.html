@@ -305,10 +305,10 @@
                 console.log(maincam.getAttribute("position"));
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("entered VR");
-                    setTimeout(function(){
+                    setInterval(function(){
                         console.log(maincam.getAttribute("position"));
                         maincam.setAttribute("position", {x: 0, y: 0, z: 0});
-                    },500);
+                    },100);
                 });
                 for(let i = 0; i < circs.length; i++){
                     let circ = circs[i];
