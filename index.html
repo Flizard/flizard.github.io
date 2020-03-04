@@ -24,7 +24,7 @@
             var rig;
             var inVR = false;
 
-            var animateHotspotTimer, growHotspot, shrinkHotspot;
+            var fadeout, fadein;
 
             class HotSpot {
                 constructor(el) {
@@ -59,15 +59,18 @@
                         this.yesbtn = new uiButton(this.yesbtn, "yes", () => {
                             if(changingScene == false){
                                 changingScene = true;
-                                fade.components.animation__fadeout.animation.restart();
+                                fade.emit("fadeOut");
                                 [...scene1.children].map(a => {a.classList.remove("interactive")});
                                 setTimeout((function(self){
                                     return function() {
                                         currentScene = scene2;
                                         scene1.setAttribute("visible", "false");
                                         scene2.setAttribute("visible", "true");
-                                        [...scene2.children].map(a => {a.classList.add("interactive")});
-                                        fade.components.animation__fadein.animation.restart();
+                                        [...scene2.children].map(a => {
+                                            a.classList.add("interactive");
+                                            a.emit("left");
+                                        });
+                                        fade.emit("fadeIn");
                                         sky.setAttribute("src", "#sky2");
                                         changingScene = false;
                                     }
@@ -77,15 +80,18 @@
                         this.nobtn = new uiButton(this.nobtn, "no", () => {
                             if(changingScene == false){
                                 changingScene = true;
-                                fade.components.animation__fadeout.animation.restart();
+                                fade.emit("fadeOut");
                                 [...scene2.children].map(a => {a.classList.remove("interactive")});
                                 setTimeout((function(self){
                                     return function() {
                                         currentScene = scene2;
                                         scene2.setAttribute("visible", "false");
                                         scene1.setAttribute("visible", "true");
-                                        [...scene1.children].map(a => {a.classList.add("interactive")});
-                                        fade.components.animation__fadein.animation.restart();
+                                        [...scene1.children].map(a => {
+                                            a.classList.add("interactive");
+                                            a.emit("left");
+                                        });
+                                        fade.emit("fadeIn");
                                         sky.setAttribute("src", "#sky1");
                                         changingScene = false;
                                     }
@@ -497,17 +503,15 @@
                 rig = document.getElementById("rig");
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V18");
+                    console.log("V19");
                     inVR = true;
-                    //rig.setAttribute("position", "0 -1.6 0");
-                    //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
                 });
                 document.querySelector('a-scene').addEventListener('exit-vr', function () {
                     console.log("EXITED VR");
                     inVR = false;
-                    //rig.setAttribute("position", "0 0 0");
                     [...circs].map(a => a.setAttribute("position", "0 0 0"));
                 });
+
                 for(let i = 0; i < circs.length; i++){
                     let circ = circs[i];
                     if(i == 0){
@@ -632,10 +636,6 @@
                 tick: function() {
                     if(inVR){
                         [...circs].map(a => a.setAttribute("position", maincam.getAttribute("position")));
-                        /*let pos = maincam.getAttribute("position");
-                        console.log(pos);
-                        maincam.setAttribute("position", {x: pos.x, y: (pos.y - 1.6), z: pos.z});
-                        console.log(maincam.getAttribute("position"));*/
                     }
                 }
             });
@@ -1065,7 +1065,8 @@
                         theta-length="20"
                         theta-start="181"
                         position="0 -0.12 0"
-                        visible="false">
+                        visible="false"
+                        ui-button>
                     </a-curvedimage>
                     <a-curvedimage
                         class="no-btn"
@@ -1075,7 +1076,8 @@
                         theta-length="20"
                         theta-start="159"
                         position="0 -0.12 0"
-                        visible="false">
+                        visible="false"
+                        ui-button>
                     </a-curvedimage>
                 </a-curvedimage>
             </a-entity>
@@ -1096,8 +1098,8 @@
                 id="fade-sphere"
                 material="shader: flat; color: black; opacity: 0"
                 obj-model="obj: #spheremodel"
-                animation__fadeout="property: material.opacity; from: 0; to: 1; dur: 2000; autoplay: false"
-                animation__fadein="property: material.opacity; from: 1; to: 0; dur: 2000; autoplay: false">
+                animation__fadeout="property: material.opacity; from: 0; to: 1; dur: 2000; autoplay: false; startEvents: fadeOut"
+                animation__fadein="property: material.opacity; from: 1; to: 0; dur: 2000; autoplay: false; startEvents: fadeIn">
             </a-entity>
         </a-scene>
     </body>
