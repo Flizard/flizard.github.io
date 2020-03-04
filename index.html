@@ -43,6 +43,8 @@
                         'sca': 0
                     };
                     this.loading = false;
+                    this.growing = false;
+                    this.shrinking = false;
                     this.enteredCheck = true;
                     this.closingCheck = true;
                     this.openingCheck = true;
@@ -132,12 +134,14 @@
                             this.tempHsca = this.Hsca.sca;
                         },
                         complete: () => {
+                            console.log("grow complete");
                             this.el.classList.remove("opening");
                             this.el.classList.remove("closing");
                             this.el.classList.add("entered");
                             this.enteredCheck = true;
                             this.openingCheck = true;
                             this.interactiveCheck = true;
+                            this.growing = false;
                         }
                     });
                 }
@@ -154,8 +158,8 @@
                         easing: 'linear',
                         begin: (anim) => {
                             //console.log("timer anim started");
-                            this.loader.setAttribute("visible", "true");
                             this.loader.setAttribute("src",`#loadS${this.currentFrame > 9 ? this.currentFrame : '0' + this.currentFrame}`);
+                            this.loader.setAttribute("visible", "true");
                             if(this.el.classList.contains("canSetInterval")){
                                 this.el.classList.remove("canSetInterval");
                                 this.loadInterval = setInterval((function(self){
@@ -179,9 +183,13 @@
                             clearInterval(this.loadInterval);
                             this.el.classList.add("canSetInterval");
                             this.currentFrame = 0;
+                            this.loader.setAttribute("src","#loadS00");
+                            this.loading = false;
                             if(this.loadForward){
                                 this.growHotspot.restart();
-                                this.el.emit('loadFinished');
+                                this.growHotspot.pause();
+                                console.log("start growing");
+                                this.growing = true;
                             }
                         }
                     });
@@ -231,6 +239,7 @@
                             this.el.classList.remove("entered");
                             this.enteredCheck = true;
                             this.closingCheck = true;
+                            this.shrinking = false;
                         }
                     })
                 }
@@ -305,14 +314,39 @@
                 },
                 init: function() {
                     var self = this;
+                    this.time = 0;
                     this.loadEventHandlerFn = function () {
+                        this.time = 0;
                         console.log("triggered load event");
-                    };
-                    this.growEventHandlerFn = function () {
-                        console.log("triggered grow event");
+                        currentHotspotTimerHolder = document.getElementById(this.getAttribute('id').substring(0,2) + "TH");
+                        currentHotspot.loadForward = true;
+                        currentHotspot.loading = true;
+                        if(typeof currentHotspot.animateHotspotTimer !== 'undefined'){
+                            currentHotspot.animateHotspotTimer.reset();
+                        }
+                        currentHotspot.reapplyHotspotTimer();
+                        currentHotspot.loading = true;
                     };
                     this.shrinkEventHandlerFn = function () {
+                        this.time = 0;
                         console.log("triggered shrink event");
+                        currentHotspot.el.classList.add("canSetInterval");
+                        currentHotspot.loading = false;
+                        if(currentHotspot.el.classList.contains("entered")){
+                            currentHotspot.animateHotspotTimer.reset();
+                            currentHotspot.loader.setAttribute("visible", "false");
+                            currentHotspot.el.classList.add("closing");
+                            currentHotspot.reapplyShrink();
+                            currentHotspot.shrinking = true;
+                        } else {
+                            currentHotspot.loadForward = false;
+                            clearInterval(currentHotspot.loadInterval);
+                            if(typeof currentHotspot.animateHotspotTimer !== 'undefined'){
+                                currentHotspot.animateHotspotTimer.reset();
+                            }
+                            currentHotspot.reapplyHotspotTimer();
+                            currentHotspot.loading = true;
+                        }
                     };
                 },
                 update: function(oldData) {
@@ -321,9 +355,6 @@
 
                     if(oldData.loadEvent && data.loadEvent !== oldData.loadEvent) {
                         el.removeEventListener(oldData.loadEvent, this.loadEventHandlerFn);
-                    }
-                    if(oldData.growEvent && data.growEvent !== oldData.growEvent) {
-                        el.removeEventListener(oldData.growEvent, this.growEventHandlerFn);
                     }
                     if(oldData.shrinkEvent && data.shrinkEvent !== oldData.shrinkEvent) {
                         el.removeEventListener(oldData.shrinkEvent, this.shrinkEventHandlerFn);
@@ -337,6 +368,19 @@
                     }
                     if(data.shrinkEvent) {
                         el.addEventListener(data.shrinkEvent, this.shrinkEventHandlerFn);
+                    }
+                },
+                tick: function(t, dt) {
+                    this.time += dt;
+                    if(currentHotspot.loading) {
+                        currentHotspot.animateHotspotTimer.tick(this.time);
+                    }
+                    if(currentHotspot.growing) {
+                        console.log("should be growing");
+                        currentHotspot.growHotspot.tick(this.time);
+                    }
+                    if(currentHotspot.shrinking) {
+                        currentHotspot.shrinkHotspot.tick(this.time);
                     }
                 }
             });
@@ -357,7 +401,7 @@
                 });
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V16");
+                    console.log("V17");
                     inVR = true;
                     //rig.setAttribute("position", "0 -1.6 0");
                     //[...circs].map(a => a.setAttribute("position", "0 1.6 0"));
@@ -447,48 +491,17 @@
                 }
 
                 function hotSpotEnter() {
-                    //console.log("entered hotspot");
                     currentHotspot = this;
                     currentHotspot = hotSpots[Number(currentHotspot.id.substring(0,2))-1];
-                    //console.log(currentHotspot);
                     if(!currentHotspot.el.classList.contains("entered") && !currentHotspot.el.classList.contains("opening") && !currentHotspot.el.classList.contains("closing") && typeof currentHotspot !== 'undefined'){
-                        currentHotspotTimerHolder = document.getElementById(this.getAttribute('id').substring(0,2) + "TH");
-                        currentHotspot.loadForward = true;
-                        currentHotspot.loading = true;
                         currentHotspot.el.emit('entered');
-                        if(typeof currentHotspot.animateHotspotTimer !== 'undefined'){
-                            currentHotspot.animateHotspotTimer.restart();
-                            currentHotspot.animateHotspotTimer.pause();
-                        }
-                        currentHotspot.reapplyHotspotTimer();
-                        //console.log("play timer anim");
-                        currentHotspot.animateHotspotTimer.play();
                     }
                 }
 
                 function hotSpotLeave(){
                     setTimeout(function(){
                         if(!currentHotspot.el.classList.contains("opening") && !onButton){
-                            currentHotspot.el.classList.add("canSetInterval");
-                            currentHotspot.loading = false;
                             currentHotspot.el.emit('left');
-                            if(currentHotspot.el.classList.contains("entered")){
-                                currentHotspot.animateHotspotTimer.restart();
-                                currentHotspot.animateHotspotTimer.pause();
-                                currentHotspot.loader.setAttribute("visible", "false");
-                                currentHotspot.el.classList.add("closing");
-                                currentHotspot.reapplyShrink();
-                                currentHotspot.shrinkHotspot.play();
-                            } else {
-                                currentHotspot.loadForward = false;
-                                clearInterval(currentHotspot.loadInterval);
-                                if(typeof currentHotspot.animateHotspotTimer !== 'undefined'){
-                                    currentHotspot.animateHotspotTimer.restart();
-                                    currentHotspot.animateHotspotTimer.pause();
-                                }
-                                currentHotspot.reapplyHotspotTimer();
-                                currentHotspot.animateHotspotTimer.play();
-                            }
                         }
                     },5);
                 }
@@ -889,7 +902,8 @@
                     theta-start="155"
                     scale="0.1 0.1 1"
                     rotation="-35 -116.6 0"
-                    position="0 0 0">
+                    position="0 0 0"
+                    hotspot>
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -912,7 +926,8 @@
                     theta-start="155"
                     scale="0.1 0.1 1"
                     rotation="-17 105.2 0"
-                    position="0 0 0">
+                    position="0 0 0"
+                    hotspot>
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -940,7 +955,8 @@
                     theta-start="155"
                     scale="0.1 0.1 1"
                     rotation="0.99 -6.7 0"
-                    position="0 0 0">
+                    position="0 0 0"
+                    hotspot>
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
@@ -968,7 +984,8 @@
                     theta-start="155"
                     scale="0.1 0.1 1"
                     rotation="-10 180 0"
-                    position="0 0 0">
+                    position="0 0 0"
+                    hotspot>
                     <a-curvedimage
                         src="#loadS0"
                         opacity="0"
