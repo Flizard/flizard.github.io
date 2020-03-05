@@ -1,4 +1,4 @@
-<html lang="en">
+<html>
     <head>
         <script src="aframe.min.js"></script>
         <!--<script src="node_modules/animejs/lib/anime.min.js"></script>-->
@@ -24,17 +24,26 @@
             var rig;
             var inVR = false;
 
+            var placeHelper;
+
             var fadeout, fadein;
+
+            function buttonEnter(el) {el.emit('enteredBtn')}
+            function buttonLeave(el) {el.emit('leftBtn')}
 
             class HotSpot {
                 constructor(el) {
                     this.id = el.id.substring(0,2);
                     this.el = el;
-                    this.yesbtn = [...el.children].filter(a => a.classList.contains("yes-btn"))[0];
-                    this.nobtn = [...el.children].filter(a => a.classList.contains("no-btn"))[0];
-                    this.hasbtns = this.yesbtn != null && this.nobtn != null;
+                    this.buttons = [...el.children].filter(a => a.classList.contains("ui-button"));
+                    this.hasbtns;
+                    this.isCarousel = false;
+                    this.currBtn;
                     this.loader = this.el.children[0];
                     this.tempTsca = 0;
+                    this.currImage = 0;
+                    this.nImages = 5;
+                    this.justOpened = false;
                     this.Tsca = {
                         'sca': 0
                     };
@@ -42,6 +51,80 @@
                     this.Hsca = {
                         'sca': 0
                     };
+
+                    if(this.buttons.length > 0) {
+                        this.hasbtns = true;
+                        this.buttons = [...this.buttons].map((a,i) => {
+                            if(a.classList.contains("yes-btn")){
+                                a.addEventListener('mouseenter', function() {buttonEnter(a)});
+                                a.addEventListener('mouseleave', function() {buttonLeave(a)});
+                                a.setAttribute("data-index", i);
+                                return new uiButton(a, "yes", () => {
+                                    if(changingScene == false){
+                                        changingScene = true;
+                                        fade.emit("fadeOut");
+                                        [...scene1.children].map(a => {a.classList.remove("interactive")});
+                                        setTimeout((function(self){
+                                            return function() {
+                                                currentScene = scene2;
+                                                scene1.setAttribute("visible", "false");
+                                                scene2.setAttribute("visible", "true");
+                                                [...scene2.children].map(a => {
+                                                    a.classList.add("interactive");
+                                                    a.emit("left");
+                                                });
+                                                fade.emit("fadeIn");
+                                                sky.setAttribute("src", "#sky2");
+                                                changingScene = false;
+                                            }
+                                        })(this),2000);
+                                    }
+                                }, i);
+                            } else if (a.classList.contains("no-btn")) {
+                                a.addEventListener('mouseenter', function() {buttonEnter(a)});
+                                a.addEventListener('mouseleave', function() {buttonLeave(a)});
+                                a.setAttribute("data-index", i);
+                                return new uiButton(a, "no", () => {
+                                    if(changingScene == false){
+                                        changingScene = true;
+                                        fade.emit("fadeOut");
+                                        [...scene2.children].map(a => {a.classList.remove("interactive")});
+                                        setTimeout((function(self){
+                                            return function() {
+                                                currentScene = scene2;
+                                                scene2.setAttribute("visible", "false");
+                                                scene1.setAttribute("visible", "true");
+                                                [...scene1.children].map(a => {
+                                                    a.classList.add("interactive");
+                                                    a.emit("left");
+                                                });
+                                                fade.emit("fadeIn");
+                                                sky.setAttribute("src", "#sky1");
+                                                changingScene = false;
+                                            }
+                                        })(this),2000);
+                                    }
+                                }, i);
+                            } else if (a.classList.contains("right-arrow")) {
+                                this.isCarousel = true;
+                                a.addEventListener('mouseenter', function() {buttonEnter(a)});
+                                a.addEventListener('mouseleave', function() {buttonLeave(a)});
+                                a.setAttribute("data-index", i);
+                                return new uiButton(a, "right", () => {
+                                    currentHotspot.progressCarousel("right");
+                                }, i);
+                            } else if (a.classList.contains("left-arrow")) {
+                                this.isCarousel = true;
+                                a.addEventListener('mouseenter', function() {buttonEnter(a)});
+                                a.addEventListener('mouseleave', function() {buttonLeave(a)});
+                                a.setAttribute("data-index", i);
+                                return new uiButton(a, "left", () => {
+                                    currentHotspot.progressCarousel("left");
+                                }, i);
+                            }
+                        });
+                        this.currBtn = this.buttons[0];
+                    }
                     this.loading = false;
                     this.growing = false;
                     this.shrinking = false;
@@ -55,50 +138,6 @@
                     this.loadDuration = 1000;
                     this.animTimes = 1;
                     this.loadInterval;
-                    if(this.hasbtns){
-                        this.yesbtn = new uiButton(this.yesbtn, "yes", () => {
-                            if(changingScene == false){
-                                changingScene = true;
-                                fade.emit("fadeOut");
-                                [...scene1.children].map(a => {a.classList.remove("interactive")});
-                                setTimeout((function(self){
-                                    return function() {
-                                        currentScene = scene2;
-                                        scene1.setAttribute("visible", "false");
-                                        scene2.setAttribute("visible", "true");
-                                        [...scene2.children].map(a => {
-                                            a.classList.add("interactive");
-                                            a.emit("left");
-                                        });
-                                        fade.emit("fadeIn");
-                                        sky.setAttribute("src", "#sky2");
-                                        changingScene = false;
-                                    }
-                                })(this),2000);
-                            }
-                        });
-                        this.nobtn = new uiButton(this.nobtn, "no", () => {
-                            if(changingScene == false){
-                                changingScene = true;
-                                fade.emit("fadeOut");
-                                [...scene2.children].map(a => {a.classList.remove("interactive")});
-                                setTimeout((function(self){
-                                    return function() {
-                                        currentScene = scene2;
-                                        scene2.setAttribute("visible", "false");
-                                        scene1.setAttribute("visible", "true");
-                                        [...scene1.children].map(a => {
-                                            a.classList.add("interactive");
-                                            a.emit("left");
-                                        });
-                                        fade.emit("fadeIn");
-                                        sky.setAttribute("src", "#sky1");
-                                        changingScene = false;
-                                    }
-                                })(this),2000);
-                            }
-                        });
-                    }
 
                     this.growHotspot = AFRAME.ANIME({
                         targets: this.Hsca,
@@ -107,6 +146,7 @@
                         autoplay: false,
                         easing: 'easeOutElastic(1, 0.5)',
                         begin: () => {
+                            this.justOpened = true;
                             this.el.classList.add("opening");
                             clearInterval(currentHotspot.loadInterval);
                             this.el.classList.add("canSetInterval");
@@ -117,6 +157,10 @@
                             for(var i = 1; i < children.length; i++){
                                 var c = children[i];
                                 c.setAttribute("visible", "true");
+                            }
+                            if(currentHotspot.isCarousel) {
+                                console.log("progress bcause carousel");
+                                currentHotspot.progressCarousel();
                             }
                             removeOverlaps(this.el);
                         },
@@ -132,8 +176,7 @@
                             }
                             if(Math.round(anim.progress) >= 30 && this.interactiveCheck){
                                 if(this.hasbtns){
-                                    this.yesbtn.el.classList.add("interactive");
-                                    this.nobtn.el.classList.add("interactive");
+                                    [...this.buttons].map(a => a.el.classList.add("interactive"));
                                 }
                                 this.interactiveCheck = false;
                             }
@@ -154,7 +197,6 @@
                 reapplyHotspotTimer(){
                     let dur = (this.loadForward ? (this.totalFrames - this.currentFrame - 1) * (this.loadDuration / (this.totalFrames * this.animTimes)) : (this.currentFrame + 1) * (this.loadDuration / (this.totalFrames * this.animTimes)));
                     let target = this.loadForward ? 1 : 0;
-                    //console.log("reapplying hotspot timer");
                     this.animateHotspotTimer = AFRAME.ANIME({
                         targets: this.Tsca,
                         sca: [this.tempTsca, target],
@@ -162,7 +204,6 @@
                         autoplay: false,
                         easing: 'linear',
                         begin: (anim) => {
-                            //console.log("timer anim started");
                             this.loader.setAttribute("src",`#loadS${this.currentFrame > 9 ? this.currentFrame : '0' + this.currentFrame}`);
                             this.loader.setAttribute("visible", "true");
                             if(this.el.classList.contains("canSetInterval")){
@@ -211,8 +252,7 @@
                             this.el.classList.add("switchImg");
                             bringBackOverlaps();
                             if(this.hasbtns){
-                                this.yesbtn.el.classList.remove("interactive");
-                                this.nobtn.el.classList.remove("interactive");
+                                [...this.buttons].map(a => a.el.classList.remove("interactive"));
                             }
                         },
                         update: (anim) => {
@@ -247,13 +287,53 @@
                         }
                     })
                 }
+
+                progressCarousel(dir){
+                    let rightB = [...this.buttons].filter(a => a.type == "right")[0].el;
+                    let leftB = [...this.buttons].filter(a => a.type == "left")[0].el;
+                    let thisImage = this.el.children[1];
+                    let nextImage = this.el.children[2];
+                    rightB.classList.remove("interactive");
+                    leftB.classList.remove("interactive");
+                    if(dir == "right" && this.currImage < (this.nImages-1)) {
+                        this.currImage++;
+                    } else if (dir == "left" && this.currImage != 0) {
+                        this.currImage--;
+                    }
+                    if(this.currImage == this.nImages-1) {
+                        rightB.setAttribute("visible", "false");
+                    } else if(this.currImage == 0) {
+                        leftB.setAttribute("visible", "false");
+                    } else {
+                        rightB.setAttribute("visible", "true");
+                        leftB.setAttribute("visible", "true");
+                    }
+                    if(!this.justOpened){
+                        nextImage.setAttribute("opacity", "0");
+                        thisImage.setAttribute("opacity", "1");
+                        nextImage.setAttribute("src", `#imageC${this.currImage}`);
+                        thisImage.emit("imageFadeOut");
+                        nextImage.emit("imageFadeIn");
+                        let cImage = this.currImage;
+                        setTimeout(function(){
+                            rightB.classList.add("interactive");
+                            leftB.classList.add("interactive");
+                            nextImage.setAttribute("opacity", "0");
+                            thisImage.setAttribute("src", `#imageC${cImage}`);
+                            thisImage.setAttribute("opacity", "1");
+                        },750);
+                    } else {
+                        this.justOpened = false;
+                    }
+                }
             }
 
 
             class uiButton {
-                constructor(el,type,f) {
+                constructor(el,type,f,i) {
                     this.el = el;
                     this.type = type;
+                    this.index = i;
                     this.animateButtonTimer;
                     this.timer = {
                         't' : 0
@@ -269,7 +349,7 @@
                 }
 
                 reapplyButtonTimer(){
-                    let dur = this.loadForward ? ((30 - this.currentFrame - 1) * (this.loadDuration / 30)) : ((this.currentFrame + 1) * (this.loadDuration / 30));
+                    let dur = this.loadForward ? ((30 - this.currentFrame - 1) * (this.loadDuration / 30)) : ((this.currentFrame) * (this.loadDuration / 30));
                     let target = this.loadForward ? 1 : 0;
                     this.animateButtonTimer = AFRAME.ANIME({
                         targets: this.timer,
@@ -291,6 +371,10 @@
                                             self.el.setAttribute("src", `#yesbtnLoad${self.currentFrame}`);
                                         } else if (self.type == "no") {
                                             self.el.setAttribute("src", `#nobtnLoad${self.currentFrame}`);
+                                        } else if (self.type == "right") {
+                                            self.el.setAttribute("src", `#arrowRLoad${self.currentFrame}`);
+                                        } else if (self.type == "left") {
+                                            self.el.setAttribute("src", `#arrowLLoad${self.currentFrame}`);
                                         }
                                     }
                                 })(this), this.loadDuration / 30);
@@ -389,57 +473,33 @@
 
             AFRAME.registerComponent('ui-button',{
                 schema: {
-                    enteredYesEvent: {type: 'string', default: 'enteredYesBtn'},
-                    enteredNoEvent: {type: 'string', default: 'enteredNoBtn'},
-                    leftYesEvent: {type: 'string', default: 'leftYesBtn'},
-                    leftNoEvent: {type: 'string', default: 'leftNoBtn'}
+                    enteredBtn: {type: 'string', default: 'enteredBtn'},
+                    leftBtn: {type: 'string', default: 'leftBtn'},
                 },
                 init: function(){
                     this.time = 0;
-                    this.enteredYesEventHandlerFn = function() {
+                    this.enteredEventHandlerFn = function() {
                         this.time = 0;
                         onButton = true;
-                        currentHotspot.yesbtn.loadForward = true;
-                        if(typeof currentHotspot.yesbtn.animateButtonTimer !== 'undefined'){
-                            currentHotspot.yesbtn.animateButtonTimer.reset();
+                        currentHotspot.currBtn = currentHotspot.buttons[this.getAttribute("data-index")];
+                        currentHotspot.currBtn.loadForward = true;
+                        if(typeof currentHotspot.currBtn.animateButtonTimer !== 'undefined'){
+                            currentHotspot.currBtn.animateButtonTimer.reset();
                         }
-                        currentHotspot.yesbtn.reapplyButtonTimer();
-                        currentHotspot.yesbtn.loading = true;
+                        currentHotspot.currBtn.reapplyButtonTimer();
+                        currentHotspot.currBtn.loading = true;
                     }
-                    this.enteredNoEventHandlerFn = function() {
-                        this.time = 0;
+                    this.leftEventHandlerFn = function () {
                         onButton = true;
-                        currentHotspot.nobtn.loadForward = true;
-                        if(typeof currentHotspot.nobtn.animateButtonTimer !== 'undefined'){
-                            currentHotspot.nobtn.animateButtonTimer.reset();
+                        currentHotspot.currBtn = currentHotspot.buttons[this.getAttribute("data-index")];
+                        currentHotspot.currBtn.loadForward = false;
+                        clearInterval(currentHotspot.currBtn.loadInterval);
+                        currentHotspot.currBtn.canSetInterval = true;
+                        if(typeof currentHotspot.currBtn.animateButtonTimer !== 'undefined'){
+                            currentHotspot.currBtn.animateButtonTimer.reset();
                         }
-                        currentHotspot.nobtn.reapplyButtonTimer();
-                        currentHotspot.nobtn.loading = true;
-                    }
-                    this.leftYesEventHandlerFn = function () {
-                        onButton = true;
-                        currentHotspot.yesbtn.loadForward = false;
-                        clearInterval(currentHotspot.yesbtn.loadInterval);
-                        currentHotspot.yesbtn.canSetInterval = true;
-                        if(typeof currentHotspot.yesbtn.animateButtonTimer !== 'undefined'){
-                            currentHotspot.yesbtn.animateButtonTimer.reset();
-                        }
-                        currentHotspot.yesbtn.reapplyButtonTimer();
-                        currentHotspot.yesbtn.loading = true;
-                        setTimeout(function(){
-                            onButton = false;
-                        }, 6);
-                    }
-                    this.leftNoEventHandlerFn = function () {
-                        onButton = true;
-                        currentHotspot.nobtn.loadForward = false;
-                        clearInterval(currentHotspot.nobtn.loadInterval);
-                        currentHotspot.nobtn.canSetInterval = true;
-                        if(typeof currentHotspot.nobtn.animateButtonTimer !== 'undefined'){
-                            currentHotspot.nobtn.animateButtonTimer.reset();
-                        }
-                        currentHotspot.nobtn.reapplyButtonTimer();
-                        currentHotspot.nobtn.loading = true;
+                        currentHotspot.currBtn.reapplyButtonTimer();
+                        currentHotspot.currBtn.loading = true;
                         setTimeout(function(){
                             onButton = false;
                         }, 6);
@@ -449,43 +509,28 @@
                     var data = this.data;
                     var el = this.el;
 
-                    if(oldData.enteredYesEvent && data.enteredYesEvent !== oldData.enteredYesEvent) {
-                        el.removeEventListener(oldData.enteredYesEvent, this.enteredYesEventHandlerFn);
+                    if(oldData.enteredBtn && data.enteredBtn !== oldData.enteredBtn) {
+                        el.removeEventListener(oldData.enteredBtn, this.enteredEventHandlerFn);
                     }
-                    if(oldData.enteredNoEvent && data.enteredNoEvent !== oldData.enteredNoEvent) {
-                        el.removeEventListener(oldData.enteredNoEvent, this.enteredNoEventHandlerFn);
-                    }
-
-                    if(oldData.leftYesEvent && data.leftYesEvent !== oldData.leftYesEvent) {
-                        el.removeEventListener(oldData.leftYesEvent, this.leftYesEventHandlerFn);
-                    }
-                    if(oldData.leftNoEvent && data.leftNoEvent !== oldData.leftNoEvent) {
-                        el.removeEventListener(oldData.leftNoEvent, this.leftNoEventHandlerFn);
+                    if(oldData.leftBtn && data.leftBtn != oldData.leftBtn) {
+                        el.removeEventListener(oldData.leftBtn, this.leftEventHandlerFn);
                     }
 
-                    if(data.enteredYesEvent) {
-                        el.addEventListener(data.enteredYesEvent, this.enteredYesEventHandlerFn);
+                    if(data.enteredBtn) {
+                        el.addEventListener(data.enteredBtn, this.enteredEventHandlerFn);
                     }
-                    if(data.enteredNoEvent) {
-                        el.addEventListener(data.enteredNoEvent, this.enteredNoEventHandlerFn);
-                    }
-
-                    if(data.leftYesEvent) {
-                        el.addEventListener(data.leftYesEvent, this.leftYesEventHandlerFn);
-                    }
-                    if(data.leftNoEvent) {
-                        el.addEventListener(data.leftNoEvent, this.leftNoEventHandlerFn);
+                    if(data.leftBtn) {
+                        el.addEventListener(data.leftBtn, this.leftEventHandlerFn);
                     }
                 },
                 tick: function(t, dt) {
                     this.time += dt;
                     if(currentHotspot.hasbtns){
-                        if(currentHotspot.yesbtn.loading) {
-                            currentHotspot.yesbtn.animateButtonTimer.tick(this.time);
-                        }
-                        if(currentHotspot.nobtn.loading) {
-                            currentHotspot.nobtn.animateButtonTimer.tick(this.time);
-                        }
+                        [...currentHotspot.buttons].map(a => {
+                            if(a.loading){
+                                a.animateButtonTimer.tick(this.time);
+                            }
+                        });
                     }
                 }
             })
@@ -501,9 +546,15 @@
                 sky = document.getElementById("sky");
                 maincam = document.getElementById("cam");
                 rig = document.getElementById("rig");
+                placeHelper = document.getElementById("placement-helper");
+                if(placeHelper) {
+                    setInterval(function() {
+                        console.log("X: " + Math.round(placeHelper.getAttribute("rotation").x * 100) / 100 + "; Y: " + Math.round(placeHelper.getAttribute("rotation").y * 100) / 100);
+                    }, 1000);
+                }
                 document.querySelector('a-scene').addEventListener('enter-vr', function () {
                     console.log("ENTERED VR");
-                    console.log("V20");
+                    console.log("V21");
                     inVR = true;
                     fade.setAttribute("position", "0 1.6 0");
                 });
@@ -524,34 +575,6 @@
                     circ.classList.add("canSetInterval");
                     circ.addEventListener('mouseenter', hotSpotEnter);
                     circ.addEventListener('mouseleave', hotSpotLeave);
-                }
-
-                for(let i = 0; i < yesButtons.length; i++){
-                    let y = yesButtons[i];
-                    y.addEventListener('mouseenter', yesButtonEnter);
-                    y.addEventListener('mouseleave', yesButtonLeave);
-                }
-
-                for(let i = 0; i < noButtons.length; i++){
-                    let n = noButtons[i];
-                    n.addEventListener('mouseenter', noButtonEnter);
-                    n.addEventListener('mouseleave', noButtonLeave);
-                }
-
-                function yesButtonEnter() {
-                    this.emit('enteredYesBtn');
-                }
-
-                function yesButtonLeave() {
-                    this.emit('leftYesBtn');
-                }
-
-                function noButtonEnter() {
-                    this.emit('enteredNoBtn');
-                }
-
-                function noButtonLeave() {
-                    this.emit('leftNoBtn');
                 }
 
                 function hotSpotEnter() {
@@ -639,6 +662,9 @@
                     if(inVR){
                         [...circs].map(a => a.setAttribute("position", maincam.getAttribute("position")));
                     }
+                    if(placeHelper){
+                        placeHelper.setAttribute("rotation", maincam.getAttribute("rotation"));
+                    }
                 }
             });
         </script>
@@ -657,6 +683,13 @@
                 <img id="hotspotOpen5" src="Media/HotspotVideo.png">
                 <video id="hotspotOpen5Video" autoplay loop="true" src="Media/Video1.mp4"></video>
                 <img id="hotspotOpen6" src="Media/HotSpotYesNo.png">
+                <img id="hotspotOpen7" src="Media/720p.png">
+
+                <img id="imageC0" src="Media/ImageCarousel/image2.jpg">
+                <img id="imageC1" src="Media/ImageCarousel/image1.jpg">
+                <img id="imageC2" src="Media/ImageCarousel/image3.jpg">
+                <img id="imageC3" src="Media/ImageCarousel/image4.jpg">
+                <img id="imageC4" src="Media/ImageCarousel/image5.jpg">
 
 
                 <!--<img id="loadS00" src="Media/LoadFrames/Load1_0.png">
@@ -871,15 +904,162 @@
                 <img id="nobtnLoad28" src="Media/NoButton/HotspotWithButtons_00028.png">
                 <img id="nobtnLoad29" src="Media/NoButton/HotspotWithButtons_00029.png">
 
+                <img id="arrowRLoad0" src="Media/ArrowRight/Arrow_00000.png">
+                <img id="arrowRLoad1" src="Media/ArrowRight/Arrow_00001.png">
+                <img id="arrowRLoad2" src="Media/ArrowRight/Arrow_00002.png">
+                <img id="arrowRLoad3" src="Media/ArrowRight/Arrow_00003.png">
+                <img id="arrowRLoad4" src="Media/ArrowRight/Arrow_00004.png">
+                <img id="arrowRLoad5" src="Media/ArrowRight/Arrow_00005.png">
+                <img id="arrowRLoad6" src="Media/ArrowRight/Arrow_00006.png">
+                <img id="arrowRLoad7" src="Media/ArrowRight/Arrow_00007.png">
+                <img id="arrowRLoad8" src="Media/ArrowRight/Arrow_00008.png">
+                <img id="arrowRLoad9" src="Media/ArrowRight/Arrow_00009.png">
+                <img id="arrowRLoad10" src="Media/ArrowRight/Arrow_00010.png">
+                <img id="arrowRLoad11" src="Media/ArrowRight/Arrow_00011.png">
+                <img id="arrowRLoad12" src="Media/ArrowRight/Arrow_00012.png">
+                <img id="arrowRLoad13" src="Media/ArrowRight/Arrow_00013.png">
+                <img id="arrowRLoad14" src="Media/ArrowRight/Arrow_00014.png">
+                <img id="arrowRLoad15" src="Media/ArrowRight/Arrow_00015.png">
+                <img id="arrowRLoad16" src="Media/ArrowRight/Arrow_00016.png">
+                <img id="arrowRLoad17" src="Media/ArrowRight/Arrow_00017.png">
+                <img id="arrowRLoad18" src="Media/ArrowRight/Arrow_00018.png">
+                <img id="arrowRLoad19" src="Media/ArrowRight/Arrow_00019.png">
+                <img id="arrowRLoad20" src="Media/ArrowRight/Arrow_00020.png">
+                <img id="arrowRLoad21" src="Media/ArrowRight/Arrow_00021.png">
+                <img id="arrowRLoad22" src="Media/ArrowRight/Arrow_00022.png">
+                <img id="arrowRLoad23" src="Media/ArrowRight/Arrow_00023.png">
+                <img id="arrowRLoad24" src="Media/ArrowRight/Arrow_00024.png">
+                <img id="arrowRLoad25" src="Media/ArrowRight/Arrow_00025.png">
+                <img id="arrowRLoad26" src="Media/ArrowRight/Arrow_00026.png">
+                <img id="arrowRLoad27" src="Media/ArrowRight/Arrow_00027.png">
+                <img id="arrowRLoad28" src="Media/ArrowRight/Arrow_00028.png">
+                <img id="arrowRLoad29" src="Media/ArrowRight/Arrow_00029.png">
+
+                <img id="arrowLLoad0" src="Media/ArrowLeft/Arrow_00000.png">
+                <img id="arrowLLoad1" src="Media/ArrowLeft/Arrow_00001.png">
+                <img id="arrowLLoad2" src="Media/ArrowLeft/Arrow_00002.png">
+                <img id="arrowLLoad3" src="Media/ArrowLeft/Arrow_00003.png">
+                <img id="arrowLLoad4" src="Media/ArrowLeft/Arrow_00004.png">
+                <img id="arrowLLoad5" src="Media/ArrowLeft/Arrow_00005.png">
+                <img id="arrowLLoad6" src="Media/ArrowLeft/Arrow_00006.png">
+                <img id="arrowLLoad7" src="Media/ArrowLeft/Arrow_00007.png">
+                <img id="arrowLLoad8" src="Media/ArrowLeft/Arrow_00008.png">
+                <img id="arrowLLoad9" src="Media/ArrowLeft/Arrow_00009.png">
+                <img id="arrowLLoad10" src="Media/ArrowLeft/Arrow_00010.png">
+                <img id="arrowLLoad11" src="Media/ArrowLeft/Arrow_00011.png">
+                <img id="arrowLLoad12" src="Media/ArrowLeft/Arrow_00012.png">
+                <img id="arrowLLoad13" src="Media/ArrowLeft/Arrow_00013.png">
+                <img id="arrowLLoad14" src="Media/ArrowLeft/Arrow_00014.png">
+                <img id="arrowLLoad15" src="Media/ArrowLeft/Arrow_00015.png">
+                <img id="arrowLLoad16" src="Media/ArrowLeft/Arrow_00016.png">
+                <img id="arrowLLoad17" src="Media/ArrowLeft/Arrow_00017.png">
+                <img id="arrowLLoad18" src="Media/ArrowLeft/Arrow_00018.png">
+                <img id="arrowLLoad19" src="Media/ArrowLeft/Arrow_00019.png">
+                <img id="arrowLLoad20" src="Media/ArrowLeft/Arrow_00020.png">
+                <img id="arrowLLoad21" src="Media/ArrowLeft/Arrow_00021.png">
+                <img id="arrowLLoad22" src="Media/ArrowLeft/Arrow_00022.png">
+                <img id="arrowLLoad23" src="Media/ArrowLeft/Arrow_00023.png">
+                <img id="arrowLLoad24" src="Media/ArrowLeft/Arrow_00024.png">
+                <img id="arrowLLoad25" src="Media/ArrowLeft/Arrow_00025.png">
+                <img id="arrowLLoad26" src="Media/ArrowLeft/Arrow_00026.png">
+                <img id="arrowLLoad27" src="Media/ArrowLeft/Arrow_00027.png">
+                <img id="arrowLLoad28" src="Media/ArrowLeft/Arrow_00028.png">
+                <img id="arrowLLoad29" src="Media/ArrowLeft/Arrow_00029.png">
+
                 <a-asset-item id="spheremodel" src="Media/Sphere.obj"></a-asset-item>
             </a-assets>
 
             <!--<a-videosphere src="#vrVideo"></a-videosphere>-->
             <a-sky id="sky" src="#sky1"></a-sky>
 
+            <!--<a-curvedimage
+                id="placement-helper"
+                src="#hotspot"
+                height="1.0324"
+                radius="1.183"
+                theta-length="50"
+                theta-start="155"
+                scale="0.1 0.1 1"
+                rotation="0 0 0"
+                position="0 0 0">
+            </a-curvedimage>-->
+
             <a-entity
                 id="scene1"
                 visible="true">
+
+                <a-curvedimage 
+                    class="circ 7 interactive"
+                    src="#hotspot"
+                    height="1.0324"
+                    radius="1.183"
+                    theta-length="50"
+                    theta-start="155"
+                    scale="0.1 0.1 1"
+                    rotation="0 -73.8 0"
+                    position="0 0 0"
+                    hotspot>
+                    <a-curvedimage
+                        src="#loadS0"
+                        opacity="0"
+                        height="1.0472"
+                        radius="1.2"
+                        theta-length="50"
+                        theta-start="155"
+                        scale="1.1 1.1 1"
+                        rotation="0 0 0"
+                        visible="false">
+                    </a-curvedimage>
+                    <a-curvedimage
+                        src="#imageC0"
+                        height="0.688"
+                        radius="1.18"
+                        opacity="1"
+                        theta-length="59.39"
+                        theta-start="150.31"
+                        visible="false"
+                        position="0 0 0"
+                        rotation="0 0 0"
+                        animation="property: opacity; to: 0; dur: 750; autoplay: false; startEvents: imageFadeOut;">
+                    </a-curvedimage>
+                    <a-curvedimage
+                        src="#imageC0"
+                        height="0.688"
+                        radius="1.18"
+                        opacity="0"
+                        theta-length="59.39"
+                        theta-start="150.31"
+                        visible="false"
+                        position="0 0 0"
+                        rotation="0 0 0"
+                        animation="property: opacity; to: 1; dur: 750; autoplay: false; startEvents: imageFadeIn;">
+                    </a-curvedimage>
+                    <a-curvedimage
+                        class="ui-button right-arrow"
+                        src="#arrowRLoad0"
+                        height="0.366"
+                        radius="1.17"
+                        theta-length="10"
+                        theta-start="150.31"
+                        visible="false"
+                        position="0 0 0"
+                        rotation="0 0 0"
+                        ui-button>
+                    </a-curvedimage>
+                    <a-curvedimage
+                        class="ui-button left-arrow"
+                        src="#arrowLLoad0"
+                        height="0.366"
+                        radius="1.17"
+                        theta-length="10"
+                        theta-start="199.7"
+                        visible="false"
+                        position="0 0 0"
+                        rotation="0 0 0"
+                        ui-button>
+                    </a-curvedimage>
+                </a-curvedimage>
+
                 <a-curvedimage 
                     class="circ 5 interactive"
                     src="#hotspot"
@@ -932,7 +1112,7 @@
                         visible="false">
                     </a-curvedimage>
                     <a-curvedimage
-                        class="yes-btn"
+                        class="ui-button yes-btn"
                         src="#yesbtnLoad0"
                         height="0.1292"
                         radius="1.18"
@@ -943,7 +1123,7 @@
                         ui-button>
                     </a-curvedimage>
                     <a-curvedimage
-                        class="no-btn"
+                        class="ui-button no-btn"
                         src="#nobtnLoad0"
                         height="0.1292"
                         radius="1.18"
@@ -1060,7 +1240,7 @@
                         visible="false">
                     </a-curvedimage>
                     <a-curvedimage
-                        class="yes-btn"
+                        class="ui-button yes-btn"
                         src="#yesbtnLoad0"
                         height="0.1292"
                         radius="1.18"
@@ -1071,7 +1251,7 @@
                         ui-button>
                     </a-curvedimage>
                     <a-curvedimage
-                        class="no-btn"
+                        class="ui-button no-btn"
                         src="#nobtnLoad0"
                         height="0.1292"
                         radius="1.18"
